@@ -1,0 +1,16 @@
+Subject: Quick hero idea for {{brand}}
+
+Hi,
+
+I was looking at {{brand}} and had a great idea for your hero section.
+
+I design a lot of websites with interactive hero sections (3D/scrolling/video-style product stories). If you're interested, I can mock up a new hero for you for free.
+
+If you like it, you can pay me after it's done.
+
+If you'd like examples first, you can check out https://vobiuslabs.com to see some projects.
+
+If you're open to it, reply "YES" and tell me which product you want featured, and I’ll send over a concept.
+
+Thanks,
+Jarvis

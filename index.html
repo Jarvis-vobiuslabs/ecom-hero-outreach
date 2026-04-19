@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ecom Hero Outreach — Review</title>
+  <meta name="theme-color" content="#0b0f19" />
+  <style>
+    :root{--bg:#0b0f19;--card:#101a2b;--text:#eaf0ff;--muted:#9fb0d0;--accent:#7c6af7;--border:rgba(255,255,255,.08)}
+    *{box-sizing:border-box} body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial;background:radial-gradient(900px 600px at 20% 10%, rgba(124,106,247,.25), transparent 60%), var(--bg);color:var(--text)}
+    header{padding:18px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(11,15,25,.85);backdrop-filter:blur(10px);z-index:10}
+    .wrap{max-width:1060px;margin:0 auto}
+    h1{margin:0;font-size:16px;letter-spacing:.3px}
+    .sub{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.4}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    input,select{flex:1;min-width:160px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:12px;outline:none}
+    .pill{display:inline-block;padding:5px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--muted)}
+    main{padding:16px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .card{grid-column:span 12;background:rgba(16,26,43,.74);border:1px solid var(--border);border-radius:16px;padding:14px}
+    @media(min-width:900px){.card{grid-column:span 6}}
+    .title{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .brand{font-weight:800}
+    .meta{color:var(--muted);font-size:12px;margin-top:6px}
+    a{color:#9cd3ff;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .btn{display:inline-block;background:linear-gradient(135deg,var(--accent),#4dd3ff);border:none;color:#081021;font-weight:800;padding:10px 12px;border-radius:12px;cursor:pointer;text-decoration:none}
+    .btn.secondary{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border)}
+    textarea{width:100%;min-height:160px;background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;resize:vertical;line-height:1.5;font-size:13px;margin-top:10px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Ecom Hero Outreach — Review</h1>
+    <div class="sub">Skincare & cosmetics brands. Review leads + copy/paste the email draft. No auto-send.</div>
+    <div class="row">
+      <input id="q" placeholder="Search brand / notes…" />
+      <select id="status">
+        <option value="">All statuses</option>
+        <option>new</option>
+        <option>drafted</option>
+        <option>sent</option>
+        <option>replied</option>
+      </select>
+      <span class="pill" id="count">0 leads</span>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="wrap">
+    <div class="grid" id="grid"></div>
+  </div>
+</main>
+<script>
+  async function load(){
+    const res = await fetch('data/leads.json?_=' + Date.now());
+    return await res.json();
+  }
+  function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+  function render(leads){
+    const q=(document.getElementById('q').value||'').toLowerCase().trim();
+    const st=(document.getElementById('status').value||'').trim();
+    const filtered=leads.filter(l=>{
+      if(st && (l.status||'')!==st) return false;
+      if(!q) return true;
+      return ((l.brand||'')+' '+(l.notes||'')+' '+(l.site||'')+' '+(l.email||'')).toLowerCase().includes(q);
+    });
+    document.getElementById('count').textContent = `${filtered.length} leads`;
+    const grid=document.getElementById('grid');
+    grid.innerHTML = filtered.map((l,i)=>{
+      const subj = l.subject || `Quick hero idea for ${l.brand||''}`;
+      return `
+      <div class="card">
+        <div class="title">
+          <div>
+            <div class="brand">${esc(l.brand||'(unknown)')}</div>
+            <div class="meta">
+              ${l.site?`<a href="${esc(l.site)}" target="_blank" rel="noopener">Website</a>`:''}
+              ${l.ig?` · <a href="${esc(l.ig)}" target="_blank" rel="noopener">Instagram</a>`:''}
+              ${l.ads?` · <a href="${esc(l.ads)}" target="_blank" rel="noopener">Ads</a>`:''}
+              ${l.email?` · <span>${esc(l.email)}</span>`:''}
+            </div>
+          </div>
+          <span class="pill">${esc(l.status||'new')}</span>
+        </div>
+        ${l.notes?`<div class="meta" style="margin-top:10px">${esc(l.notes)}</div>`:''}
+        <textarea readonly>${esc(`Subject: ${subj}\n\n${l.body||''}`)}</textarea>
+        <div class="actions">
+          <button class="btn" onclick="copyDraft(${i})">Copy draft</button>
+          ${l.site?`<a class="btn secondary" href="${esc(l.site)}" target="_blank" rel="noopener">Open site</a>`:''}
+        </div>
+      </div>`;
+    }).join('');
+
+    window.__LEADS__ = filtered;
+  }
+
+  async function boot(){
+    const leads = await load();
+    window.__ALL__ = leads;
+    render(leads);
+  }
+
+  window.copyDraft = async (idx)=>{
+    const l = window.__LEADS__[idx];
+    const subj = l.subject || `Quick hero idea for ${l.brand||''}`;
+    const text = `Subject: ${subj}\n\n${l.body||''}`;
+    await navigator.clipboard.writeText(text);
+    alert('Copied');
+  }
+
+  document.getElementById('q').addEventListener('input', ()=>render(window.__ALL__||[]));
+  document.getElementById('status').addEventListener('change', ()=>render(window.__ALL__||[]));
+  boot();
+</script>
+</body>
+</html>
